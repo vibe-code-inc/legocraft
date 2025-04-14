@@ -1,0 +1,40 @@
+{
+  "expo": {
+    "name": "LEGO Minecraft",
+    "slug": "lego-minecraft",
+    "version": "1.0.0",
+    "orientation": "landscape",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#4a90e2"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.legominecraft.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#4a90e2"
+      },
+      "package": "com.legominecraft.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "lego-minecraft"
+      }
+    },
+    "plugins": [
+      "expo-gl"
+    ]
+  }
+}
