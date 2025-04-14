@@ -262,8 +262,8 @@ export const Scene3D = ({ world, selectedBlockType = 'brick_red', onPositionUpda
     <>
       <Lighting timeOfDay={timeOfDay} />
       <Player 
-        world={world} 
-        position={[16, 20, 16]} 
+        world={world}
+        position={[16, 5, 16]}
         onPositionUpdate={onPositionUpdate} 
       />
       <WorldGrid size={gameConfig.world.size.width} />
@@ -271,6 +271,10 @@ export const Scene3D = ({ world, selectedBlockType = 'brick_red', onPositionUpda
       {/* Render optimized blocks */}
       {optimizeBlockRendering()}
       
+      <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <planeGeometry args={[100, 100]} />
+        <meshStandardMaterial color="#8B4513" />
+      </mesh>
       {/* Render selection box and block preview */}
       <SelectionBox selectedBlock={selectedBlock} selectedFace={selectedFace} />
       <BlockPreview 
