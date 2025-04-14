@@ -3,9 +3,9 @@ export default {
   // World settings
   world: {
     size: {
-      width: 32,
-      height: 32,
-      depth: 32
+      width: 16,
+      height: 16,
+      depth: 16
     },
     gravity: -9.8,
     chunkSize: 16

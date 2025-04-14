@@ -53,8 +53,8 @@ const WorldGrid = ({ size }) => {
 };
 
 // Component to handle player and camera
-const Player = ({ world, position = [16, 20, 16], onPositionUpdate }) => {
-  const playerPosition = usePlayerPhysicsWithCollision(world, position, gameConfig.player.speed);
+const Player = ({ world, position = [16, 20, 16], onPositionUpdate, movementState }) => {
+  const playerPosition = usePlayerPhysicsWithCollision(world, position, gameConfig.player.speed, movementState);
   
   // Update position for UI
   useFrame(() => {
@@ -113,7 +113,7 @@ const BlockPreview = ({ selectedBlock, selectedFace, selectedBlockType }) => {
 };
 
 // Main 3D scene component
-export const Scene3D = ({ world, selectedBlockType = 'brick_red', onPositionUpdate, onSceneReady }) => {
+export const Scene3D = ({ world, selectedBlockType = 'brick_red', onPositionUpdate, onSceneReady, movementState }) => {
   const [timeOfDay, setTimeOfDay] = useState(0.5);
   const [blocks, setBlocks] = useState([]);
   const { scene, camera, gl } = useThree();
@@ -265,16 +265,13 @@ export const Scene3D = ({ world, selectedBlockType = 'brick_red', onPositionUpda
         world={world}
         position={[16, 5, 16]}
         onPositionUpdate={onPositionUpdate} 
+        movementState={movementState}
       />
       <WorldGrid size={gameConfig.world.size.width} />
       
       {/* Render optimized blocks */}
       {optimizeBlockRendering()}
       
-      <mesh position={[0, 0, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[100, 100]} />
-        <meshStandardMaterial color="#8B4513" />
-      </mesh>
       {/* Render selection box and block preview */}
       <SelectionBox selectedBlock={selectedBlock} selectedFace={selectedFace} />
       <BlockPreview 

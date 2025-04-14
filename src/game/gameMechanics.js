@@ -181,7 +181,7 @@ export const useCollisionDetection = (world, playerPosition, playerSize = { widt
 };
 
 // Enhanced player physics with collision detection
-export const usePlayerPhysicsWithCollision = (world, initialPosition = [0, 5, 0], speed = 5) => {
+export const usePlayerPhysicsWithCollision = (world, initialPosition = [0, 5, 0], speed = 5, externalControls = null) => {
   const position = useRef(new THREE.Vector3(...initialPosition));
   const velocity = useRef(new THREE.Vector3());
   const direction = useRef(new THREE.Vector3());
@@ -189,8 +189,8 @@ export const usePlayerPhysicsWithCollision = (world, initialPosition = [0, 5, 0]
   
   // Set up collision detection
   const { isValidPosition, isOnGround } = useCollisionDetection(world, position);
-  
-  // Keyboard controls state
+
+  // Use external controls if provided, otherwise use keyboard
   const [keys, setKeys] = useState({
     forward: false,
     backward: false,
@@ -198,9 +198,11 @@ export const usePlayerPhysicsWithCollision = (world, initialPosition = [0, 5, 0]
     right: false,
     jump: false
   });
-  
+
   // Set up keyboard controls
   useEffect(() => {
+    if (externalControls) return; // Skip keyboard if external controls provided
+
     const handleKeyDown = (e) => {
       switch (e.code) {
         case 'KeyW':
@@ -254,6 +256,9 @@ export const usePlayerPhysicsWithCollision = (world, initialPosition = [0, 5, 0]
   useFrame((state, delta) => {
     // Reset direction
     direction.current.set(0, 0, 0);
+
+    // Use external controls if provided, otherwise use keyboard controls
+    const activeControls = externalControls || keys;
     
     // Get camera direction for movement relative to view
     const cameraDirection = new THREE.Vector3();
@@ -266,10 +271,10 @@ export const usePlayerPhysicsWithCollision = (world, initialPosition = [0, 5, 0]
     right.crossVectors(camera.up, cameraDirection).normalize();
     
     // Update direction based on controls
-    if (keys.forward) direction.current.add(cameraDirection);
-    if (keys.backward) direction.current.sub(cameraDirection);
-    if (keys.left) direction.current.sub(right);
-    if (keys.right) direction.current.add(right);
+    if (activeControls.forward) direction.current.add(cameraDirection);
+    if (activeControls.backward) direction.current.sub(cameraDirection);
+    if (activeControls.left) direction.current.sub(right);
+    if (activeControls.right) direction.current.add(right);
     
     // Normalize direction vector
     if (direction.current.length() > 0) {

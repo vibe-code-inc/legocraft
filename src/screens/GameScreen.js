@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, Modal } from 'react-native';
+import { StyleSheet, View, Text, TouchableOpacity, Modal, PanResponder } from 'react-native';
 import { Canvas } from '@react-three/fiber';
 import { Scene3D } from '../game/Scene3D';
 import { generateWorld } from '../game/gameMechanics';
@@ -18,6 +18,14 @@ export const GameScreen = ({ onExitGame }) => {
   const [showPerformanceResults, setShowPerformanceResults] = useState(false);
   const [performanceResults, setPerformanceResults] = useState(null);
   const [optimizationsApplied, setOptimizationsApplied] = useState(false);
+
+  const [movementState, setMovementState] = useState({
+    forward: false,
+    backward: false,
+    left: false,
+    right: false,
+    jump: false
+  });
   
   const worldRef = useRef(null);
   const rendererRef = useRef(null);
@@ -104,6 +112,21 @@ export const GameScreen = ({ onExitGame }) => {
       }, 5000);
     }
   };
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderMove: (evt, gestureState) => {
+        if (cameraRef.current) {
+          const sensitivity = 0.01;
+          cameraRef.current.rotation.y -= gestureState.dx * sensitivity;
+          // Limit vertical rotation to avoid flipping
+          const newXRotation = cameraRef.current.rotation.x - gestureState.dy * sensitivity;
+          cameraRef.current.rotation.x = Math.max(-Math.PI/2, Math.min(Math.PI/2, newXRotation));
+        }
+      }
+    })
+  ).current;
   
   return (
     <View 
@@ -117,16 +140,17 @@ export const GameScreen = ({ onExitGame }) => {
         </View>
       ) : (
         <>
-          <Canvas style={styles.canvas} shadows>
-            <Scene3D 
-              world={worldRef.current} 
+          <Canvas style={styles.canvas} shadows fallback={<Text style={styles.fallbackText}>Loading 3D world...</Text>} {...panResponder.panHandlers}>
+            <Scene3D
+              world={worldRef.current}
               selectedBlockType={selectedBlockType}
               onPositionUpdate={handlePositionUpdate}
               onSceneReady={handleSceneReady}
+              movementState={movementState}
             />
           </Canvas>
-          
-          <GameHUD 
+
+          <GameHUD
             onExitGame={onExitGame}
             selectedBlockType={selectedBlockType}
             onBlockSelect={setSelectedBlockType}
@@ -134,12 +158,58 @@ export const GameScreen = ({ onExitGame }) => {
             playerPosition={playerPosition}
             playerHealth={playerHealth}
           />
-          
+
           <PerformanceMonitor isVisible={showPerformanceMonitor} />
-          
+
+          <View style={styles.touchControls}>
+            <View style={styles.moveControls}>
+              <TouchableOpacity
+                style={styles.controlButton}
+                onPressIn={() => setMovementState(prev => ({...prev, forward: true}))}
+                onPressOut={() => setMovementState(prev => ({...prev, forward: false}))}
+              >
+                <Text style={styles.controlText}>↑</Text>
+              </TouchableOpacity>
+
+              <View style={styles.horizontalControls}>
+                <TouchableOpacity
+                  style={styles.controlButton}
+                  onPressIn={() => setMovementState(prev => ({...prev, left: true}))}
+                  onPressOut={() => setMovementState(prev => ({...prev, left: false}))}
+                >
+                  <Text style={styles.controlText}>←</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.controlButton}
+                  onPressIn={() => setMovementState(prev => ({...prev, backward: true}))}
+                  onPressOut={() => setMovementState(prev => ({...prev, backward: false}))}
+                >
+                  <Text style={styles.controlText}>↓</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.controlButton}
+                  onPressIn={() => setMovementState(prev => ({...prev, right: true}))}
+                  onPressOut={() => setMovementState(prev => ({...prev, right: false}))}
+                >
+                  <Text style={styles.controlText}>→</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={[styles.controlButton, styles.jumpButton]}
+              onPressIn={() => setMovementState(prev => ({...prev, jump: true}))}
+              onPressOut={() => setMovementState(prev => ({...prev, jump: false}))}
+            >
+              <Text style={styles.controlText}>JUMP</Text>
+            </TouchableOpacity>
+          </View>
+
           {/* Performance test controls */}
           <View style={styles.performanceControls}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.performanceButton}
               onPress={() => setShowPerformanceMonitor(!showPerformanceMonitor)}
             >
@@ -147,15 +217,15 @@ export const GameScreen = ({ onExitGame }) => {
                 {showPerformanceMonitor ? 'Hide Metrics' : 'Show Metrics'}
               </Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.performanceButton}
               onPress={handleRunTests}
             >
               <Text style={styles.buttonText}>Run Performance Test</Text>
             </TouchableOpacity>
           </View>
-          
+
           {/* Performance results modal */}
           <Modal
             visible={showPerformanceResults}
@@ -164,7 +234,7 @@ export const GameScreen = ({ onExitGame }) => {
             onRequestClose={() => setShowPerformanceResults(false)}
           >
             <View style={styles.modalOverlay}>
-              <PerformanceResults 
+              <PerformanceResults
                 results={performanceResults}
                 onClose={() => setShowPerformanceResults(false)}
               />
@@ -188,6 +258,11 @@ const styles = StyleSheet.create({
     backgroundColor: '#4a90e2',
   },
   loadingText: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  fallbackText: {
     color: '#fff',
     fontSize: 24,
     fontWeight: 'bold',
@@ -217,5 +292,39 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.7)',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  touchControls: {
+    position: 'absolute',
+    bottom: 120,
+    left: 20,
+    right: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  moveControls: {
+    alignItems: 'center',
+  },
+  horizontalControls: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  controlButton: {
+    width: 60,
+    height: 60,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    margin: 10,
+  },
+  jumpButton: {
+    width: 80,
+    height: 80,
+    backgroundColor: 'rgba(245, 166, 35, 0.7)',
+  },
+  controlText: {
+    color: '#fff',
+    fontSize: 24,
+    fontWeight: 'bold',
   },
 });
