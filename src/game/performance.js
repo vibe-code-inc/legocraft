@@ -255,26 +255,30 @@ export const optimizeRendering = (scene, camera, renderer) => {
     
     // Optimize renderer settings
     optimizeRenderer: () => {
-      if (!renderer) return;
-      
+      if (!renderer) return renderer;
+
+      // Use modern properties instead of deprecated ones
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+      // No need to set physicallyCorrectLights or useLegacyLights
+      // as modern Three.js uses physically correct lighting by default
+
       // Set pixel ratio to balance quality and performance
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-      
+
       // Enable shadow map optimization
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
       renderer.shadowMap.autoUpdate = false; // Only update shadows when necessary
-      
+
       // Set power preference to high-performance
       renderer.powerPreference = 'high-performance';
-      
-      // Enable physical correct lighting
-      renderer.physicallyCorrectLights = true;
-      
+
       // Optimize render targets
-      renderer.outputEncoding = THREE.sRGBEncoding;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1;
+
+      return renderer;
     }
   };
 };
