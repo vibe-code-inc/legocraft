@@ -4,6 +4,7 @@
     "slug": "lego-minecraft",
     "version": "1.0.0",
     "orientation": "landscape",
+    "newArchEnabled": true,
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {

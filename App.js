@@ -1,3 +1,6 @@
+import 'react-native-gesture-handler';
+// All other imports should come after this
+
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
